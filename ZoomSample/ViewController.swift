@@ -21,5 +21,9 @@ class ViewController: UIViewController {
     }
 
 
+    @IBAction func didTapJoinMeeting(_ sender: UIButton) {
+        let meetingId: String = ProcessInfo.processInfo.environment["MeetingId"] ?? ""
+        let url = URL(string: "zoomus://zoomus/join?confno=\(meetingId)")
+        UIApplication.shared.open(url!)
+    }
 }
-
