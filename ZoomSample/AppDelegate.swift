@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MobileRTC
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -14,8 +15,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {    
-        // Override point for customization after application launch.
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        let zoomDomain = ProcessInfo.processInfo.environment["ZoomDomain"] ?? ""
+        MobileRTC.shared().setMobileRTCDomain(zoomDomain)
+        self.authMobileRTC()
         return true
     }
 
@@ -42,5 +45,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 
+    // MARK: - Private functions
+
+    private func authMobileRTC() {
+        guard let authService = MobileRTC.shared().getAuthService() else {
+            print("No auth service")
+            return
+        }
+
+        let zoomSDKKey = ProcessInfo.processInfo.environment["ZoomSDKKey"] ?? ""
+        let zoomSDKSecret = ProcessInfo.processInfo.environment["ZoomSDKSecret"] ?? ""
+
+        authService.delegate = self
+        authService.clientKey = zoomSDKKey
+        authService.clientSecret = zoomSDKSecret
+        authService.sdkAuth()
+    }
 }
 
+
+// MARK: - MobileRTCAuthDelegate
+
+extension AppDelegate: MobileRTCAuthDelegate {
+
+    func onMobileRTCAuthReturn(_ returnValue: MobileRTCAuthError) {
+        guard returnValue == MobileRTCAuthError_Success else {
+            print("MobileRTC authentication failure: \(returnValue)")
+            return
+        }
+
+        print("MobileRTC authentication success!")
+    }
+}
